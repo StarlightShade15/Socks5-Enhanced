@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f1">
+  <title>SOCKS5 Authentication | Protocol Field Guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f6f1;
+      --surface: #ffffff;
+      --ink: #202820;
+      --muted: #647064;
+      --line: #d7ded5;
+      --green: #1d5b40;
+      --green-soft: #e6f0e8;
+      --coral: #bd4d32;
+      --coral-soft: #f5e8e2;
+      --gold: #eadb8c;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Aptos", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.6 var(--sans);
+    }
+
+    a { color: var(--green); }
+
+    .page {
+      width: min(1050px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 27px 0 58px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topline, .eyebrow, .step-label, .status-label {
+      font: 700 12px/1.3 var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      align-items: end;
+      gap: 50px;
+      padding-top: 60px;
+    }
+
+    .eyebrow { color: var(--coral); }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 700px;
+      margin-bottom: 18px;
+      font: 500 52px/1.04 var(--serif);
+    }
+
+    .lede {
+      max-width: 670px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .status {
+      padding: 18px 19px;
+      border-top: 4px solid var(--gold);
+      background: var(--surface);
+    }
+
+    .status-label { color: var(--muted); }
+    .status strong { display: block; margin: 8px 0 4px; font: 600 18px/1.3 var(--serif); }
+    .status p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    main { padding: 44px 0 70px; }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 14px;
+    }
+
+    h2 { margin-bottom: 0; font: 500 30px/1.2 var(--serif); }
+
+    .section-heading p { max-width: 480px; margin: 0; color: var(--muted); font-size: 14px; }
+
+    .flow {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+
+    .flow li {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) 240px;
+      gap: 21px;
+      align-items: start;
+      padding: 25px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .number {
+      display: grid;
+      width: 40px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid var(--green);
+      border-radius: 50%;
+      color: var(--green);
+      font: 700 13px var(--mono);
+    }
+
+    .step-label { margin-bottom: 7px; color: var(--coral); }
+    h3 { margin-bottom: 7px; font: 600 21px/1.25 var(--serif); }
+    .flow p { margin-bottom: 0; color: var(--muted); }
+
+    .bytes {
+      padding: 12px 14px;
+      border-left: 3px solid var(--green);
+      background: var(--green-soft);
+      font: 14px/1.6 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    .bytes small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font: 12px/1.5 var(--sans);
+    }
+
+    .reply-stack { display: grid; gap: 8px; }
+    .bytes.reject { border-left-color: var(--coral); background: var(--coral-soft); }
+
+    .field-guide {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 58px;
+    }
+
+    .guide-block { padding-top: 16px; border-top: 3px solid var(--ink); }
+    .guide-block h2 { margin-bottom: 17px; font-size: 25px; }
+
+    .fields { margin: 0; padding: 0; list-style: none; }
+    .fields li { display: grid; grid-template-columns: 115px 1fr; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); }
+    .fields b { font: 13px var(--mono); color: var(--green); }
+    .fields span { color: var(--muted); font-size: 14px; }
+
+    .callout {
+      margin-top: 42px;
+      padding: 20px 22px;
+      border-left: 4px solid var(--coral);
+      background: var(--coral-soft);
+    }
+
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout p { margin: 0; color: #56483f; }
+
+    .next {
+      margin-top: 54px;
+      padding: 25px 0 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .next h2 { margin-bottom: 12px; }
+    .next p { max-width: 750px; margin-bottom: 0; color: var(--muted); }
+
+    footer {
+      padding: 18px 0 27px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .intro { grid-template-columns: 1fr; gap: 26px; padding-top: 42px; }
+      h1 { font-size: 42px; }
+      .status { max-width: 420px; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .flow li { grid-template-columns: 42px minmax(0, 1fr); gap: 14px; }
+      .flow > li > .bytes,
+      .flow > li > .reply-stack { grid-column: 2; }
+      .field-guide { grid-template-columns: 1fr; gap: 28px; }
+    }
+
+    @media (max-width: 430px) {
+      .page { width: min(100% - 28px, 1050px); }
+      header { padding-bottom: 40px; }
+      .topline { font-size: 10px; }
+      h1 { font-size: 36px; }
+      .lede { font-size: 16px; }
+      .flow li { padding: 20px 0; }
+      .fields li { grid-template-columns: 95px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="page">
+      <div class="topline"><span>Protocol field guide / 01</span><span>SOCKS5 · Authentication</span></div>
+      <div class="intro">
+        <div>
+          <div class="eyebrow">A small, testable milestone</div>
+          <h1>Make the client prove who it is.</h1>
+          <p class="lede">SOCKS5 authentication happens after the TCP connection and before the client asks the proxy to connect anywhere. This guide covers the greeting and required username/password exchange only.</p>
+        </div>
+        <aside class="status" aria-label="Current project status">
+          <div class="status-label">Your server today</div>
+          <strong>TCP accept + read</strong>
+          <p>The listener works. It still needs to parse SOCKS5 bytes and send protocol replies.</p>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section aria-labelledby="flow-title">
+      <div class="section-heading">
+        <h2 id="flow-title">The exchange</h2>
+        <p>Each arrow is a separate message on the same TCP connection. Read the required number of bytes; one read is not guaranteed to return a whole message.</p>
+      </div>
+
+      <ol class="flow">
+        <li>
+          <div class="number">01</div>
+          <div>
+            <div class="step-label">Client → server · method offer</div>
+            <h3>Client greeting</h3>
+            <p>The client identifies SOCKS version 5, says how many methods it is offering, then lists those methods. Method <code>02</code> means username/password.</p>
+          </div>
+          <div class="bytes">05 01 02<small>Version 5 · one method · username/password</small></div>
+        </li>
+        <li>
+          <div class="number">02</div>
+          <div>
+            <div class="step-label">Server → client · method choice</div>
+            <h3>Require authentication</h3>
+            <p>If the client offered method <code>02</code>, select it, even if it also offered methods you don’t support. If <code>02</code> was not offered, send the rejection below and close the connection. Never select <code>00</code> (no authentication).</p>
+          </div>
+          <div class="reply-stack">
+            <div class="bytes">05 02<small>Choose SOCKS5 username/password authentication</small></div>
+            <div class="bytes reject">05 FF<small>No offered method is acceptable; close the connection</small></div>
+          </div>
+        </li>
+        <li>
+          <div class="number">03</div>
+          <div>
+            <div class="step-label">Client → server · credentials</div>
+            <h3>Username/password request</h3>
+            <p>This sub-protocol has version <code>01</code>. Each credential is prefixed by a one-byte length; the bytes are not null-terminated strings.</p>
+          </div>
+          <div class="bytes">01 · ULEN · UNAME · PLEN · PASSWD<small>Example: 01 04 alex 06 secret</small></div>
+        </li>
+        <li>
+          <div class="number">04</div>
+          <div>
+            <div class="step-label">Server → client · authentication result</div>
+            <h3>Check and answer</h3>
+            <p>Validate the version and lengths, compare both credentials, then send the result. On failure, close the connection; don’t continue to a request.</p>
+          </div>
+          <div class="bytes">01 00<small>Success · use 01 01 for failure</small></div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="field-guide" aria-label="Field and implementation notes">
+      <div class="guide-block">
+        <h2>Read the fields</h2>
+        <ul class="fields">
+          <li><b>VER</b><span>Greeting version: <code>05</code>.</span></li>
+          <li><b>NMETHODS</b><span>How many method bytes follow.</span></li>
+          <li><b>METHODS</b><span>Read exactly that many bytes; look for <code>02</code>.</span></li>
+          <li><b>ULEN / PLEN</b><span>One-byte lengths, from 1 through 255.</span></li>
+          <li><b>UNAME / PASSWD</b><span>Read exactly each length; then compare with configured credentials.</span></li>
+        </ul>
+      </div>
+      <div class="guide-block">
+        <h2>Implementation order</h2>
+        <ul class="fields">
+          <li><b>First</b><span>Give the handler access to the expected username and password.</span></li>
+          <li><b>Then</b><span>Read the greeting header, followed by its method list.</span></li>
+          <li><b>Next</b><span>Select only method <code>02</code>; reject clients that did not offer it.</span></li>
+          <li><b>Then</b><span>Read the auth fields by their lengths and send success or failure.</span></li>
+          <li><b>Finally</b><span>Test correct credentials and wrong credentials separately.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <aside class="callout">
+      <strong>Important: this authentication is not encrypted.</strong>
+      <p>SOCKS5 username/password credentials travel as readable bytes. Keep the listener on <code>127.0.0.1</code> while learning; don’t expose it to an untrusted network. Never print passwords in logs.</p>
+    </aside>
+
+    <section class="next" aria-labelledby="test-title">
+      <div class="eyebrow">Connect it to your project</div>
+      <h2 id="test-title">Update the test client after the server replies</h2>
+      <p>Your Requests test currently has no proxy credentials. Once the server requires authentication, configure its SOCKS URL with the username and password. Keep the <code>socks5h</code> scheme so the proxy resolves the destination hostname. Encode special characters in credentials before putting them in a URL. An HTTPS request still needs the later CONNECT and data-relay stages; this authentication milestone alone won’t make the full request pass.</p>
+      <p>That <code>05 FF</code> reply rejects authentication methods during greeting negotiation. Later, if a client sends an unsupported SOCKS command, that is a different reply: the request response code is <code>07</code> (“command not supported”).</p>
+    </section>
+  </main>
+
+  <footer><div class="page">Learning note · Implement and test one protocol exchange at a time.</div></footer>
+</body>
+</html>
